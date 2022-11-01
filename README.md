@@ -28,7 +28,7 @@ The OPC DA/AE Server One-time fee for lifetime SCLA 1.0 license is available at
 
 ### Get Support for the Solution under GPL 3.0 or SCLA 1.0
 
-Support for the Solution under the GPL 3.0 or SCLA 1.0 is available [here](https://github.com/technosoftware-gmbh/opc-daae-server/issues).
+Support for the Solution under the GPL 3.0 or SCLA 1.0 is available [here](https://github.com/technosoftware-gmbh/opc-daae-server-solution/issues).
 
 Please be aware that there is no obligation that Technosoftware will provide maintenance, support or training under GPL 3.0 or SCLA 1.0.
 
@@ -38,4 +38,4 @@ Technosoftware has no plans to add features and fixes will only be done if time 
 
 Therefore we strongly encourage community participation and contribution to this project. First, please fork the repository and commit your changes there. Once happy with your changes you can generate a 'pull request'.
 
-You must agree to the contributor license agreement before we can accept your changes. The CLA and "I AGREE" button is automatically displayed when you perform the pull request. You can preview CLA [here](https://cla-assistant.io/technosoftware-gmbh/opcdaaehda-client-solution-cpp).
+You must agree to the contributor license agreement before we can accept your changes. The CLA and "I AGREE" button is automatically displayed when you perform the pull request. You can preview CLA [here](https://cla-assistant.io/technosoftware-gmbh/opc-daae-server-solution).
