@@ -39,3 +39,13 @@ Technosoftware has no plans to add features and fixes will only be done if time 
 Therefore we strongly encourage community participation and contribution to this project. First, please fork the repository and commit your changes there. Once happy with your changes you can generate a 'pull request'.
 
 You must agree to the contributor license agreement before we can accept your changes. The CLA and "I AGREE" button is automatically displayed when you perform the pull request. You can preview CLA [here](https://cla-assistant.io/technosoftware-gmbh/opc-daae-server-solution).
+
+## BUILD
+
+###Steps for build this shit
+1. Build ServerPlugin.sln
+2. After build serverplugin add output .dll to link for OpcNetDaAeServer
+3. In props for OpcNetDaAeServer enable cls support and use /clr
+4. Run powershell as admin
+5. for compiled .exe /regserver
+6. Profit
