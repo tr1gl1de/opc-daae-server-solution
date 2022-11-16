@@ -979,7 +979,7 @@ rem $(TargetDir)\RegServer.exe $(TargetPath) -regserver
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ServerPlugin">
-      <HintPath>..\..\..\..\examples\net\C#\DaAeSampleServer\bin\x86\Release\net\ServerPlugin.dll</HintPath>
+      <HintPath>..\..\..\..\examples\net\C#\DaSampleServer\bin\x64\Debug\net\ServerPlugin.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
