@@ -32,6 +32,12 @@ using System;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Greet;
+using Grpc.Net.Client.Web;
+using Grpc.Net.Client;
+
 #endregion
 
 namespace ServerPlugin
@@ -665,6 +671,8 @@ namespace ServerPlugin
                 //IntPtr[] itemHandles;
                 //GetActiveItems(out numHandles, out itemHandles);
 
+                
+                
                 count++;
                 ramp++;
                 myDynamicRampItem_.Value = ramp;
@@ -681,6 +689,7 @@ namespace ServerPlugin
                    DaQuality.Good.Code, DateTime.Now);
 
                 Thread.Sleep(1000);    // ms
+                CallGrpcFunc().Wait();
 
                 if (stopThread_ != null)
                 {
@@ -689,6 +698,21 @@ namespace ServerPlugin
                 }
             }
         }
+
+        public static async Task CallGrpcFunc()
+        {
+            var channel = GrpcChannel.ForAddress("https://localhost:5001", new GrpcChannelOptions
+            {
+                HttpHandler = new GrpcWebHandler(new WinHttpHandler())
+            });
+            var client = new Greeter.GreeterClient(channel);
+
+            var reply = await client.SayHelloAsync(new HelloRequest { Name = "GreeterClient" });
+            Console.WriteLine("Greeting: " + reply.Message);
+
+            await Task.Delay(TimeSpan.FromSeconds(2));
+        }
+        
         #endregion
 
     }

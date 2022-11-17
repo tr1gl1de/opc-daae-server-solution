@@ -121,6 +121,7 @@
     <OutDir>net\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>net\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DAOnly|Win32'">
     <OutDir>net\$(Platform)\$(Configuration)\</OutDir>
@@ -979,7 +980,7 @@ rem $(TargetDir)\RegServer.exe $(TargetPath) -regserver
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ServerPlugin">
-      <HintPath>..\..\..\..\examples\net\C#\DaSampleServer\bin\x64\Debug\net\ServerPlugin.dll</HintPath>
+      <HintPath>net\x64\Debug\ServerPlugin.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
