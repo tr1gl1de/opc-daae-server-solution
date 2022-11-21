@@ -29,7 +29,7 @@
     <ProjectGuid>{72E084D2-C762-4EB5-8A32-2C9D6BC35FF1}</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <OutputPath>C:\Users\Maxim\RiderProjects\opc-daae-server-solution\src\Technosoftware\Server\ClassicServer\net\x64\Debug</OutputPath>
+    <OutputPath>C:\Users\m.kazakov\RiderProjects\opc-daae-server-solution\src\Technosoftware\Server\ClassicServer\net\x64\Debug</OutputPath>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <BaseAddress>285212672</BaseAddress>
@@ -40,7 +40,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <OutputPath>C:\Users\Maxim\RiderProjects\opc-daae-server-solution\src\Technosoftware\Server\ClassicServer\net\x64\Debug</OutputPath>
+    <OutputPath>C:\Users\m.kazakov\RiderProjects\opc-daae-server-solution\src\Technosoftware\Server\ClassicServer\net\x64\Debug</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <BaseAddress>285212672</BaseAddress>
     <DocumentationFile>bin\x86\Release\net\ServerPlugin.xml</DocumentationFile>
@@ -52,7 +52,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
-    <OutputPath>C:\Users\Maxim\RiderProjects\opc-daae-server-solution\src\Technosoftware\Server\ClassicServer\net\x64\Debug</OutputPath>
+    <OutputPath>C:\Users\m.kazakov\RiderProjects\opc-daae-server-solution\src\Technosoftware\Server\ClassicServer\net\x64\Debug</OutputPath>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <BaseAddress>285212672</BaseAddress>
@@ -62,7 +62,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
-    <OutputPath>C:\Users\Maxim\RiderProjects\opc-daae-server-solution\src\Technosoftware\Server\ClassicServer\net\x64\Debug</OutputPath>
+    <OutputPath>C:\Users\m.kazakov\RiderProjects\opc-daae-server-solution\src\Technosoftware\Server\ClassicServer\net\x64\Debug</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <BaseAddress>285212672</BaseAddress>
     <DocumentationFile>bin\x64\Release\net\ServerPlugin.xml</DocumentationFile>

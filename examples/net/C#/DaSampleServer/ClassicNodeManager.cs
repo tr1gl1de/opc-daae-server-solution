@@ -30,15 +30,11 @@
 #region	Using Directives
 using System;
 using System.Threading;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text.Json;
 using System.Threading.Tasks;
 using ServerPlugin.Contracts;
-using Type = System.Type;
 using System.Net.Http.Json;
 
 #endregion
@@ -156,12 +152,6 @@ namespace ServerPlugin
         /// <returns>A <see cref="StatusCodes"/> code with the result of the operation.</returns>
         public override int OnCreateServerItems()
         {
-            #region Data Access address space
-
-            CreateServerAddressSpace();
-
-            #endregion
-
             // create a thread for simulating signal changes
             // in real application this thread reads from the device
             myThread_ = new Thread(RefreshThread) { Name = "Device Simulation", Priority = ThreadPriority.AboveNormal };
@@ -325,308 +315,6 @@ namespace ServerPlugin
 
         #region Create Data Access Sample Variants
 
-        /// <summary>
-        /// Utility function to create the sample values for the server items.
-        /// </summary>
-        /// <param name="itemType"></param>
-        /// <param name="isArray"></param>
-        /// <param name="itemValue"></param>
-        internal void CreateSampleVariant(
-            Type itemType,
-            bool isArray,
-            out object itemValue)
-        {
-            #region Data Access address space
-
-            var rand = new Random();
-
-            if (isArray)
-            {
-                //
-                // Array Type
-                //
-                string bstr = null;
-                if (itemType == typeof(string[]))
-                {
-                    bstr = "This is string #";
-                }
-
-                var itemList = new ArrayList();
-
-                for (int i = 0; i < 4; i++)
-                {
-                    if (itemType == typeof(bool))
-                    {
-                        itemList.Add(i % 2 == 1);
-                    }
-                    else if (itemType == typeof(sbyte))
-                    {
-                        var d = new byte[1];
-                        rand.NextBytes(d);
-                        itemList.Add((sbyte)d[0]);
-                    }
-                    else if (itemType == typeof(short))
-                    {
-                        var d = new byte[1];
-                        rand.NextBytes(d);
-                        itemList.Add((short)d[0]);
-                    }
-                    else if (itemType == typeof(int))
-                    {
-                        itemList.Add(rand.Next() * 100);
-                    }
-                    else if (itemType == typeof(Int64))
-                    {
-                        itemList.Add((Int64)rand.Next() * 100);
-                    }
-                    else if (itemType == typeof(UInt64))
-                    {
-                        itemList.Add((UInt64)rand.Next() * 100);
-                    }
-                    else if (itemType == typeof(byte))
-                    {
-                        var d = new byte[1];
-                        rand.NextBytes(d);
-                        itemList.Add(d[0]);
-                    }
-                    else if (itemType == typeof(ushort))
-                    {
-                        var d = new byte[1];
-                        rand.NextBytes(d);
-                        itemList.Add((ushort)d[0]);
-                    }
-                    else if (itemType == typeof(uint))
-                    {
-                        itemList.Add((uint)rand.NextDouble() * 100);
-                    }
-                    else if (itemType == typeof(float))
-                    {
-                        itemList.Add((float)rand.NextDouble() * 100);
-                    }
-                    else if (itemType == typeof(double))
-                    {
-                        itemList.Add(rand.NextDouble() * 100);
-                    }
-                    else if (itemType == typeof(DateTime))
-                    {
-                        itemList.Add(new DateTime(rand.Next()));
-                    }
-                    else if (itemType == typeof(string))
-                    {
-                        itemList.Add(bstr + i);
-                    }
-                    else
-                        itemList.Add(null);    // not supported type
-                }
-                itemValue = itemList.ToArray(itemType);
-            }
-            else
-            {
-                //
-                // Simple Type
-                //
-                if (itemType == typeof(sbyte)) itemValue = (sbyte)76;
-                else if (itemType == typeof(byte)) itemValue = (byte)23;
-                else if (itemType == typeof(short)) itemValue = (short)345;
-                else if (itemType == typeof(ushort)) itemValue = (ushort)39874;
-                else if (itemType == typeof(int)) itemValue = 20196;
-                else if (itemType == typeof(Int64)) itemValue = Int64.MinValue;
-                else if (itemType == typeof(UInt64)) itemValue = UInt64.MaxValue;
-                else if (itemType == typeof(uint)) itemValue = (uint)4230498;
-                else if (itemType == typeof(float)) itemValue = (float)8.123242;
-                else if (itemType == typeof(double)) itemValue = 83289.48243;
-                else if (itemType == typeof(DateTime)) itemValue = new DateTime(1900, 1, 1, 12, 0, 0);
-                else if (itemType == typeof(bool)) itemValue = false;
-                else if (itemType == typeof(string)) itemValue = "-- It's a nice day --";
-                else itemValue = null;
-            }
-
-            #endregion
-
-        }
-
-        internal class StructItemIDs
-        {
-            public StructItemIDs(string itemId, Type type)
-            { ItemId = itemId; ItemType = type; }
-
-            public string ItemId { get; set; }
-
-            public Type ItemType { get; set; }
-        }
-
-        internal class StructIoTypes
-        {
-            public StructIoTypes(string branch, DaAccessRights accessRights)
-            { Branch = branch; AccessRights = accessRights; }
-
-            public string Branch { get; set; }
-
-            public DaAccessRights AccessRights { get; set; }
-        }
-
-        /// <summary>
-        /// Create all items supported by this server
-        /// </summary>
-        /// <returns></returns>
-        private void CreateServerAddressSpace()
-        {
-            var arrayItems =
-                new[]{
-									   new StructItemIDs( "Short",        typeof(short)  ),
-									   new StructItemIDs( "Integer",      typeof(int)    ),
-									   new StructItemIDs( "Int64",        typeof(Int64)  ),
-									   new StructItemIDs( "UInt64",       typeof(UInt64)  ),
-									   new StructItemIDs( "SingleFloat",  typeof(float)  ),
-									   new StructItemIDs( "DoubleFloat",  typeof(double) ),
-									   new StructItemIDs( "String",       typeof(string) ),
-									   new StructItemIDs( "Byte",         typeof(byte)   ),
-									   new StructItemIDs( "Character",    typeof(sbyte)  ),
-									   new StructItemIDs( "Word",         typeof(ushort) ),
-									   new StructItemIDs( "DoubleWord",   typeof(uint)   ),
-									   new StructItemIDs( "Boolean",      typeof(bool)   ),
-									   new StructItemIDs( "DateTime",     typeof(DateTime)   ),
-									   new StructItemIDs( null,           null        ) };
-
-            var ioTypes =
-                new[] {
-										new StructIoTypes( "In", DaAccessRights.Readable      ),
-										new StructIoTypes( "Out",   DaAccessRights.Writable      ),
-										new StructIoTypes( "InOut", DaAccessRights.ReadWritable  ),
-										new StructIoTypes( null, 0                    ) };
-            int z;
-            MyItem myItem;
-
-                //------------------------------------------------------------
-                // SimpleTypes In/Out/InOut
-                //------------------------------------------------------------
-            int i = 0;
-                while (ioTypes[i].Branch != null)
-                {
-                    z = 0;
-                    while (arrayItems[z].ItemId != null)
-                    {
-                        object initialItemValue;
-                        CreateSampleVariant(arrayItems[z].ItemType, false, out initialItemValue);
-
-                    var itemId = "CTT.SimpleTypes.";
-                    itemId += ioTypes[i].Branch;
-
-
-                    myItem = new MyItem(itemId + "." + arrayItems[z].ItemId, initialItemValue);
-
-                    AddItem(itemId + "." + arrayItems[z].ItemId,
-                            ioTypes[i].AccessRights, initialItemValue, out myItem.DeviceItemHandle);
-                    Items.Add(myItem.DeviceItemHandle, myItem);
-                        z++;
-                    }
-                    i++;
-                }
-
-                //------------------------------------------------------------
-                // Arrays In/Out/InOut
-                //------------------------------------------------------------
-                i = 0;
-                while (ioTypes[i].Branch != null)
-                {
-                    z = 0;
-                    while (arrayItems[z].ItemId != null)
-                    {
-                        object initialItemValue;
-                        CreateSampleVariant(arrayItems[z].ItemType, true, out initialItemValue);
-
-                    var itemId = "CTT.ArrayTypes.";
-                    itemId += ioTypes[i].Branch;
-
-                    myItem = new MyItem(itemId + "." + arrayItems[z].ItemId + "[]", initialItemValue);
-
-                    AddItem(itemId + "." + arrayItems[z].ItemId + "[]",
-                            ioTypes[i].AccessRights, initialItemValue, out myItem.DeviceItemHandle);
-                    Items.Add(myItem.DeviceItemHandle, myItem);
-                        z++;
-                    }
-                    i++;
-                }
-
-
-                // SimulatedData/Ramp
-                {
-                const int itemValue = 0; // canonical data type
-
-                myItem = new MyItem("SimulatedData.Ramp", itemValue);
-
-                myDynamicRampItem_ = myItem;
-
-                AddItem("SimulatedData.Ramp",
-                        DaAccessRights.Readable, itemValue, out myItem.DeviceItemHandle);
-                Items.Add(myItem.DeviceItemHandle, myItem);
-                }
-
-                // SimulatedData/Sine
-                {
-                const double itemValue = 0.0; // canonical data type
-
-                myItem = new MyItem("SimulatedData.Sine", itemValue);
-
-                myDynamicSineItem_ = myItem;
-
-                AddItem("SimulatedData.Sine",
-                        DaAccessRights.Readable, itemValue, out myItem.DeviceItemHandle);
-                Items.Add(myItem.DeviceItemHandle, myItem);
-                }
-
-                // SimulatedData/Random
-                {
-                const int itemValue = 0; // canonical data type
-
-                myItem = new MyItem("SimulatedData.Random", itemValue);
-
-                myDynamicRandomItem_ = myItem;
-
-                AddItem(myItem.ItemName, DaAccessRights.Readable, itemValue, out myItem.DeviceItemHandle);
-                Items.Add(myItem.DeviceItemHandle, myItem);
-                }
-
-                // SpecialItems/WithAnalogEUInfo
-            var itemPropertiesAnalog = new MyItemProperty[2];
-            itemPropertiesAnalog[0] = new MyItemProperty(DaProperty.LowEu.Code, 40.86);
-            itemPropertiesAnalog[1] = new MyItemProperty(DaProperty.HighEu.Code, 92.67);
-
-            myItem = new MyItem("SpecialItems.WithAnalogEUInfo", 20.56, itemPropertiesAnalog);
-
-            AddAnalogItem(myItem.ItemName,
-                          DaAccessRights.ReadWritable, myItem.Value, 40.86, 92.67, out myItem.DeviceItemHandle);
-            Items.Add(myItem.DeviceItemHandle, myItem);
-
-                // SpecialItems/WithAnalogEUInfo
-            itemPropertiesAnalog[0] = new MyItemProperty(DaProperty.LowEu.Code, 12.50);
-            itemPropertiesAnalog[1] = new MyItemProperty(DaProperty.HighEu.Code, 27.90);
-
-            myItem = new MyItem("SpecialItems.WithAnalogEUInfo2", 21.00, itemPropertiesAnalog);
-
-            AddAnalogItem(myItem.ItemName,
-                          DaAccessRights.ReadWritable, myItem.Value, 12.50, 27.90, out myItem.DeviceItemHandle);
-            Items.Add(myItem.DeviceItemHandle, myItem);
-
-                // Add Custom Property Definitions to the generic server
-            AddProperty(PropertyIdCasingHeight, "Casing Height", 25.34);
-            AddProperty(PropertyIdCasingMaterial, "Casing Material", "Aluminum");
-            AddProperty(PropertyIdCasingManufacturer, "Casing Manufacturer", "CBM");
-            AddProperty(102, "High EU", 45.86);
-            AddProperty(103, "Low EU", 35.86);
-
-                // Create custom item properties for the item
-            var itemProperties = new MyItemProperty[3];
-            itemProperties[0] = new MyItemProperty(PropertyIdCasingHeight, 25.45);
-            itemProperties[1] = new MyItemProperty(PropertyIdCasingMaterial, "Aluminum");
-            itemProperties[2] = new MyItemProperty(PropertyIdCasingManufacturer, "CBM");
-
-            myItem = new MyItem("SpecialItems.WithVendorSpecificProperties", 1111, itemProperties);
-
-            AddItem(myItem.ItemName,
-                    DaAccessRights.ReadWritable, myItem.Value, out myItem.DeviceItemHandle);
-            Items.Add(myItem.DeviceItemHandle, myItem);
-        }
         #endregion
 
         #region Refresh Thread
@@ -634,64 +322,8 @@ namespace ServerPlugin
         // This method simulates item value changes.
         void RefreshThread()
         {
-            double count = 0;
-            int ramp = 0;
-            var rand = new Random();
-
-            // Update all used items once
-            foreach (MyItem item in Items.Values)
-            {
-                SetItemValue(item.DeviceItemHandle, item.Value, DaQuality.Good.Code, DateTime.Now);
-            }
-
             for (; ; )   // forever thread loop
             {
-                //int numclientHandles;
-                //IntPtr[] clientHandles;
-                //String[] clientNames;
-
-                //GetClients(out numclientHandles, out clientHandles, out clientNames);
-                //if (numclientHandles > 0)
-                //{
-                //    foreach (var client in clientHandles)
-                //    {
-                //        int numGroupHandles;
-                //        IntPtr[] groupHandles;
-                //        String[] groupNames;
-                //        GetGroups(client, out numGroupHandles, out groupHandles, out groupNames);
-                //        if (numGroupHandles > 0)
-                //        {
-                //            foreach (var group in groupHandles)
-                //            {
-                //                DaGroupState groupInfo;
-                //                GetGroupState(group, out groupInfo);
-                //            }
-                //        }
-                //    }
-                //}
-                
-                // Sample how to get a list of active items (used at least by one client)
-                //int numHandles;
-                //IntPtr[] itemHandles;
-                //GetActiveItems(out numHandles, out itemHandles);
-
-                
-                
-                count++;
-                ramp++;
-                myDynamicRampItem_.Value = ramp;
-                // update server cache for this item
-                SetItemValue(myDynamicRampItem_.DeviceItemHandle, myDynamicRampItem_.Value,
-                   DaQuality.Good.Code, DateTime.Now);
-
-                myDynamicRandomItem_.Value = rand.Next();
-                SetItemValue(myDynamicRandomItem_.DeviceItemHandle, myDynamicRandomItem_.Value,
-                   DaQuality.Good.Code, DateTime.Now);
-
-                myDynamicSineItem_.Value = Math.Sin((count % 40) * 0.1570796327);
-                SetItemValue(myDynamicSineItem_.DeviceItemHandle, myDynamicSineItem_.Value,
-                   DaQuality.Good.Code, DateTime.Now);
-
                 Thread.Sleep(1000);    // ms
                 var responseTags = GetTagsAsync().GetAwaiter().GetResult();
                 var tags = ConvertToMyItemArr(responseTags);
@@ -699,10 +331,24 @@ namespace ServerPlugin
                 {
                     if (!_itemsWithName.ContainsKey(item.ItemName))
                     {
-                        _itemsWithName.Add(item.ItemName, item);
                         AddItem(item.ItemName, DaAccessRights.ReadWritable, item.Value, out item.DeviceItemHandle);
                         Items.Add(item.DeviceItemHandle, item);
+                        _itemsWithName.Add(item.ItemName, item);
                         SetItemValue(item.DeviceItemHandle, item.Value, item.Quality.Code, DateTime.Now);
+                    }
+                }
+
+                var responseTagsForRemove = GetTagsForRemoveAsync().GetAwaiter().GetResult();
+                ClearRemovedTagsList().GetAwaiter().GetResult();
+                var tagsForRemove = ConvertToMyItemArr(responseTagsForRemove);
+                foreach (var item in tagsForRemove)
+                {
+                    if (_itemsWithName.ContainsKey(item.ItemName))
+                    {
+                        var intPtrRemovedItem = _itemsWithName[item.ItemName].DeviceItemHandle;
+                        RemoveItem(intPtrRemovedItem);
+                        Items.Remove(intPtrRemovedItem);
+                        _itemsWithName.Remove(item.ItemName);
                     }
                 }
                 
@@ -717,9 +363,50 @@ namespace ServerPlugin
 
         private static async Task<IEnumerable<Tag>> GetTagsAsync()
         {
-            var client = new HttpClient();
-            var response = await client.GetFromJsonAsync<List<Tag>>("https://localhost:7174/api/Tags");
-            return response;
+            try
+            {
+                var client = new HttpClient();
+                var response = await client.GetFromJsonAsync<List<Tag>>("https://localhost:7174/api/Tags/GetAllTags");
+                client.Dispose();
+                return response;
+            }
+            catch (Exception e)
+            {
+                await Console.Out.WriteLineAsync($"Error: {e}");
+            }
+
+            return null;
+        }
+
+        private static async Task<IEnumerable<Tag>> GetTagsForRemoveAsync()
+        {
+            try
+            {
+                var client = new HttpClient();
+                var response = await client.GetFromJsonAsync<List<Tag>>("https://localhost:7174/api/Tags/GetRemovedTags");
+                client.Dispose();
+                return response;
+            }
+            catch (Exception e)
+            {
+                await Console.Out.WriteLineAsync($"Error: {e}");
+            }
+
+            return null;
+        }
+
+        private static async Task ClearRemovedTagsList()
+        {
+            try
+            {
+                var client = new HttpClient();
+                await client.PostAsync("https://localhost:7174/api/Tags/ClearRemovedTagsList", new StringContent(""));
+                client.Dispose();
+            }
+            catch (Exception e)
+            {
+                await Console.Out.WriteLineAsync($"Error: {e}");
+            }
         }
 
         private static IEnumerable<MyItem> ConvertToMyItemArr(IEnumerable<Tag> tags)
