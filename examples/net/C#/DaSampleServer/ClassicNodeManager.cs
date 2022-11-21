@@ -32,11 +32,14 @@ using System;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Greet;
-using Grpc.Net.Client.Web;
-using Grpc.Net.Client;
+using ServerPlugin.Contracts;
+using Type = System.Type;
+using System.Net.Http.Json;
 
 #endregion
 
@@ -97,7 +100,8 @@ namespace ServerPlugin
         // Important: All data needs to be defined as STATIC.
         // This is important because this class is used in multiple instances.
 
-        static private Dictionary<IntPtr, MyItem> items_ = new Dictionary<IntPtr, MyItem>();
+        private static readonly Dictionary<IntPtr, MyItem> Items = new Dictionary<IntPtr, MyItem>();
+        private static Dictionary<string, MyItem> _itemsWithName = new Dictionary<string, MyItem>();
         #endregion
 
         #region General Methods (not related to an OPC specification)
@@ -229,7 +233,7 @@ namespace ServerPlugin
             out int[] iDs)
         {
             MyItem item;
-            if (items_.TryGetValue(deviceItemHandle, out item))
+            if (Items.TryGetValue(deviceItemHandle, out item))
             {
                 if (item.ItemProperties != null)
                 {
@@ -260,7 +264,7 @@ namespace ServerPlugin
         public override int OnGetPropertyValue(IntPtr deviceItemHandle, int propertyId, out object propertyValue)
         {
             MyItem item;
-            if (items_.TryGetValue(deviceItemHandle, out item))
+            if (Items.TryGetValue(deviceItemHandle, out item))
             {
                 if (item.ItemProperties != null)
                 {
@@ -301,7 +305,7 @@ namespace ServerPlugin
             foreach (DaDeviceItemValue t in values)
             {
                 MyItem item;
-                if (items_.TryGetValue(t.DeviceItemHandle, out item))
+                if (Items.TryGetValue(t.DeviceItemHandle, out item))
                 {
                     // Only if there is a Value specified write the value into buffer
                     if (t.Value != null)
@@ -513,7 +517,7 @@ namespace ServerPlugin
 
                     AddItem(itemId + "." + arrayItems[z].ItemId,
                             ioTypes[i].AccessRights, initialItemValue, out myItem.DeviceItemHandle);
-                    items_.Add(myItem.DeviceItemHandle, myItem);
+                    Items.Add(myItem.DeviceItemHandle, myItem);
                         z++;
                     }
                     i++;
@@ -538,7 +542,7 @@ namespace ServerPlugin
 
                     AddItem(itemId + "." + arrayItems[z].ItemId + "[]",
                             ioTypes[i].AccessRights, initialItemValue, out myItem.DeviceItemHandle);
-                    items_.Add(myItem.DeviceItemHandle, myItem);
+                    Items.Add(myItem.DeviceItemHandle, myItem);
                         z++;
                     }
                     i++;
@@ -555,7 +559,7 @@ namespace ServerPlugin
 
                 AddItem("SimulatedData.Ramp",
                         DaAccessRights.Readable, itemValue, out myItem.DeviceItemHandle);
-                items_.Add(myItem.DeviceItemHandle, myItem);
+                Items.Add(myItem.DeviceItemHandle, myItem);
                 }
 
                 // SimulatedData/Sine
@@ -568,7 +572,7 @@ namespace ServerPlugin
 
                 AddItem("SimulatedData.Sine",
                         DaAccessRights.Readable, itemValue, out myItem.DeviceItemHandle);
-                items_.Add(myItem.DeviceItemHandle, myItem);
+                Items.Add(myItem.DeviceItemHandle, myItem);
                 }
 
                 // SimulatedData/Random
@@ -580,7 +584,7 @@ namespace ServerPlugin
                 myDynamicRandomItem_ = myItem;
 
                 AddItem(myItem.ItemName, DaAccessRights.Readable, itemValue, out myItem.DeviceItemHandle);
-                items_.Add(myItem.DeviceItemHandle, myItem);
+                Items.Add(myItem.DeviceItemHandle, myItem);
                 }
 
                 // SpecialItems/WithAnalogEUInfo
@@ -592,7 +596,7 @@ namespace ServerPlugin
 
             AddAnalogItem(myItem.ItemName,
                           DaAccessRights.ReadWritable, myItem.Value, 40.86, 92.67, out myItem.DeviceItemHandle);
-            items_.Add(myItem.DeviceItemHandle, myItem);
+            Items.Add(myItem.DeviceItemHandle, myItem);
 
                 // SpecialItems/WithAnalogEUInfo
             itemPropertiesAnalog[0] = new MyItemProperty(DaProperty.LowEu.Code, 12.50);
@@ -602,7 +606,7 @@ namespace ServerPlugin
 
             AddAnalogItem(myItem.ItemName,
                           DaAccessRights.ReadWritable, myItem.Value, 12.50, 27.90, out myItem.DeviceItemHandle);
-            items_.Add(myItem.DeviceItemHandle, myItem);
+            Items.Add(myItem.DeviceItemHandle, myItem);
 
                 // Add Custom Property Definitions to the generic server
             AddProperty(PropertyIdCasingHeight, "Casing Height", 25.34);
@@ -621,7 +625,7 @@ namespace ServerPlugin
 
             AddItem(myItem.ItemName,
                     DaAccessRights.ReadWritable, myItem.Value, out myItem.DeviceItemHandle);
-            items_.Add(myItem.DeviceItemHandle, myItem);
+            Items.Add(myItem.DeviceItemHandle, myItem);
         }
         #endregion
 
@@ -635,7 +639,7 @@ namespace ServerPlugin
             var rand = new Random();
 
             // Update all used items once
-            foreach (MyItem item in items_.Values)
+            foreach (MyItem item in Items.Values)
             {
                 SetItemValue(item.DeviceItemHandle, item.Value, DaQuality.Good.Code, DateTime.Now);
             }
@@ -689,7 +693,19 @@ namespace ServerPlugin
                    DaQuality.Good.Code, DateTime.Now);
 
                 Thread.Sleep(1000);    // ms
-                CallGrpcFunc().Wait();
+                var responseTags = GetTagsAsync().GetAwaiter().GetResult();
+                var tags = ConvertToMyItemArr(responseTags);
+                foreach (var item in tags)
+                {
+                    if (!_itemsWithName.ContainsKey(item.ItemName))
+                    {
+                        _itemsWithName.Add(item.ItemName, item);
+                        AddItem(item.ItemName, DaAccessRights.ReadWritable, item.Value, out item.DeviceItemHandle);
+                        Items.Add(item.DeviceItemHandle, item);
+                        SetItemValue(item.DeviceItemHandle, item.Value, item.Quality.Code, DateTime.Now);
+                    }
+                }
+                
 
                 if (stopThread_ != null)
                 {
@@ -699,18 +715,47 @@ namespace ServerPlugin
             }
         }
 
-        public static async Task CallGrpcFunc()
+        private static async Task<IEnumerable<Tag>> GetTagsAsync()
         {
-            var channel = GrpcChannel.ForAddress("https://localhost:5001", new GrpcChannelOptions
+            var client = new HttpClient();
+            var response = await client.GetFromJsonAsync<List<Tag>>("https://localhost:7174/api/Tags");
+            return response;
+        }
+
+        private static IEnumerable<MyItem> ConvertToMyItemArr(IEnumerable<Tag> tags)
+        {
+            return tags.Select(ConvertToMyItem);
+        }
+
+        private static MyItem ConvertToMyItem(Tag tag)
+        {
+            if (int.TryParse(tag.TagValue, out var intValue))
             {
-                HttpHandler = new GrpcWebHandler(new WinHttpHandler())
-            });
-            var client = new Greeter.GreeterClient(channel);
+                return new MyItem(tag.TagName, intValue)
+                {
+                    Quality = DaQuality.Good
+                };
+            }
+            if (float.TryParse(tag.TagValue, out var floatValue))
+            {
+                return new MyItem(tag.TagName, floatValue)
+                {
+                    Quality = DaQuality.Good
+                };
+            }
 
-            var reply = await client.SayHelloAsync(new HelloRequest { Name = "GreeterClient" });
-            Console.WriteLine("Greeting: " + reply.Message);
+            if (bool.TryParse(tag.TagValue, out var boolValue))
+            {
+                return new MyItem(tag.TagName, boolValue)
+                {
+                    Quality = DaQuality.Good
+                };
+            }
 
-            await Task.Delay(TimeSpan.FromSeconds(2));
+            return new MyItem(tag.TagName, tag.TagValue)
+            {
+                Quality = DaQuality.Good
+            };
         }
         
         #endregion
